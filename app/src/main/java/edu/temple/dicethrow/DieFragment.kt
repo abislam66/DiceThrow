@@ -10,6 +10,7 @@ import kotlin.random.Random
 
 private const val DIESIDE = "sidenumber"
 private const val CURRENTROLL = "currentroll"
+private const val ROLL_FLIPS = 15
 
 class DieFragment : Fragment() {
 
@@ -53,9 +54,31 @@ class DieFragment : Fragment() {
         outState.putInt(CURRENTROLL, currentRoll)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        dieTextView.removeCallbacks(rollAnimation)
+    }
+
+    private var flipsLeft = 0
+
+    // Shows a random face, waits a bit longer each time, then lands on currentRoll
+    private val rollAnimation: Runnable = object : Runnable {
+        override fun run() {
+            if (flipsLeft > 0) {
+                dieTextView.text = (Random.nextInt(dieSides) + 1).toString()
+                flipsLeft--
+                dieTextView.postDelayed(this, 50L + (ROLL_FLIPS - flipsLeft) * 15L)
+            } else {
+                dieTextView.text = currentRoll.toString()
+            }
+        }
+    }
+
     fun throwDie() {
         currentRoll = Random.nextInt(dieSides) + 1
-        dieTextView.text = currentRoll.toString()
+        dieTextView.removeCallbacks(rollAnimation)
+        flipsLeft = ROLL_FLIPS
+        dieTextView.post(rollAnimation)
     }
 
     companion object {
