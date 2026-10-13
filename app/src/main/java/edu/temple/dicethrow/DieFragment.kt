@@ -8,20 +8,24 @@ import android.view.ViewGroup
 import android.widget.TextView
 import kotlin.random.Random
 
-class DieFragment : Fragment() {
+private const val DIESIDE = "sidenumber"
+private const val CURRENTROLL = "currentroll"
 
-    val DIESIDE = "sidenumber"
+class DieFragment : Fragment() {
 
     lateinit var dieTextView: TextView
 
-    var dieSides: Int = 6
+
+    var currentRoll: Int = 0
+    var dieSides:Int=6
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            it.getInt(DIESIDE).run {
-                dieSides = this
-            }
+            dieSides = it.getInt(DIESIDE, 6)
+        }
+        savedInstanceState?.let {
+            currentRoll = it.getInt(CURRENTROLL)
         }
     }
 
@@ -37,13 +41,28 @@ class DieFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        throwDie()
-        view.setOnClickListener{
+        // Restore the previous roll after rotation, otherwise roll for the first time
+        if (currentRoll == 0)
             throwDie()
-        }
+        else
+            dieTextView.text = currentRoll.toString()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(CURRENTROLL, currentRoll)
     }
 
     fun throwDie() {
-        dieTextView.text = Random.nextInt(dieSides).toString()
+        currentRoll = Random.nextInt(dieSides) + 1
+        dieTextView.text = currentRoll.toString()
+    }
+
+    companion object {
+        fun newInstance(sides: Int) = DieFragment().apply {
+            arguments = Bundle().apply {
+                putInt(DIESIDE, sides)
+            }
+        }
     }
 }
